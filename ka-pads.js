@@ -54,7 +54,7 @@ export class Pads {
   defs() {
     const sc = this.sc, g = sc.getG(), out = [];
     SLOTS.forEach((s, i) => {
-      if (s.kind === 'indoor' && !g.indoorOpen) return;
+      if (s.kind === 'off' || (s.kind === 'indoor' && !g.indoorOpen)) return;
       const b = g.builds[i];
       if (!b) {
         const t = s.type, big = s.kind === 'drill' ? 3.4 : 3.2;

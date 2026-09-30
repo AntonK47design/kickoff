@@ -87,6 +87,32 @@ function pose(type, k, t, L) {
     Object.assign(P, { lx: x - dir * 0.95, lz: -2.1 + k * 2.1, rot: dir * Math.PI / 2, y: 0.03, tilt: Math.PI / 2, legL: Math.sin(t * 18) * 0.35, legR: -Math.sin(t * 18) * 0.35, armL: -((t * 6) % (Math.PI * 2)), armR: -((t * 6 + Math.PI) % (Math.PI * 2)) });
     P.key = 'p' + dir; P.ev = 'splash';
   }
+  if (type === 'passing') {
+    const per = 1.5, tt = t + k * 0.37, cyc = Math.floor(tt / per), ph = tt / per - cyc, px = (k - 1.5) * 1.35, pz = 1.5, bz = -1.72;
+    const foot = { x: px, y: 0.2, z: pz - 0.45 };
+    Object.assign(P, { lx: px, lz: pz, rot: Math.PI });
+    if (ph < 0.18) P.legR = -0.8 * ease(ph / 0.18);
+    else if (ph < 0.26) P.legR = lerp(-0.8, 0.9, (ph - 0.18) / 0.08);
+    else P.legR = lerp(0.9, 0, cl((ph - 0.26) / 0.3));
+    P.armL = -P.legR * 0.4; P.armR = P.legR * 0.3;
+    let ball = { ...foot, spin: 0 };
+    if (ph >= 0.24 && ph < 0.5) { const u = (ph - 0.24) / 0.26; ball = { x: px, y: 0.2, z: lerp(foot.z, bz, u), spin: 9 }; }
+    else if (ph >= 0.5 && ph < 0.85) { const u = (ph - 0.5) / 0.35; ball = { x: px, y: 0.2, z: lerp(bz, foot.z, ease(u)), spin: 6 }; }
+    P.ball = ball; P.hitAt = { x: px, y: 0.3, z: bz };
+    P.key = 'pa' + cyc + (ph >= 0.24 ? 'k' : '') + (ph >= 0.5 ? 'h' : ''); P.ev = ph >= 0.5 ? 'touch' : ph >= 0.24 ? 'kick' : null;
+  }
+  if (type === 'keeper') {
+    const per = 2.4, tt = t + k * 1.1, cyc = Math.floor(tt / per), ph = tt / per - cyc, side = cyc % 2 ? 1 : -1, ox = (k % 2 ? 1 : -1) * Math.min(k, 1) * 0.4;
+    Object.assign(P, { lx: ox, lz: -0.9 + k * 0.5, rot: 0, y: -0.12, legL: -0.5, legR: -0.5, armL: -0.9, armR: -0.9 });
+    if (ph >= 0.38 && ph < 0.58) { const u = ease((ph - 0.38) / 0.2); P.lx = ox + side * 1.25 * u; P.y = 0.55 * Math.sin(u * Math.PI); P.armL = P.armR = -2.9; P.legL = side > 0 ? -0.2 : 0.5; P.legR = side > 0 ? 0.5 : -0.2; }
+    else if (ph >= 0.58 && ph < 0.75) { P.lx = ox + side * 1.25; P.y = 0; P.armL = P.armR = -1.6; }
+    else if (ph >= 0.75) { const u = ease((ph - 0.75) / 0.25); P.lx = ox + side * 1.25 * (1 - u); P.y = 0; P.armL = P.armR = lerp(-2.6, -0.9, u); }
+    const hand = { x: ox + side * 1.25, y: 1.05, z: P.lz + 0.35 };
+    if (ph >= 0.3 && ph < 0.55) { const u = (ph - 0.3) / 0.25; P.ball = { x: lerp(side * 0.3, hand.x, u), y: lerp(0.2, hand.y, u) + Math.sin(u * Math.PI) * 0.6, z: lerp(5.2, hand.z, u), spin: 10 }; }
+    else if (ph >= 0.55 && ph < 0.75) P.ball = { ...hand, spin: 0 };
+    else if (ph >= 0.75 && ph < 0.95) { const u = (ph - 0.75) / 0.2; P.ball = { x: lerp(hand.x, 0, u), y: lerp(hand.y, 0.2, u) + Math.sin(u * Math.PI) * 1.2, z: lerp(hand.z, 5.2, u), spin: 4 }; }
+    P.key = 'k' + cyc + (ph >= 0.3 ? 's' : '') + (ph >= 0.55 ? 'c' : ''); P.ev = ph >= 0.55 ? 'touch' : ph >= 0.3 ? 'kick' : null;
+  }
   if (type === 'clinic') {
     Object.assign(P, { lx: (k - 1) * 2.2, lz: 1.0, rot: 0, y: 0.8 + Math.sin(t * 2) * 0.01, tilt: -Math.PI / 2, armL: -0.1, armR: -0.1 });
   }
@@ -150,7 +176,7 @@ export class Actors {
 
   goTrain(a, slot) {
     const g = this.sc.getG(), b = g.builds[slot], used = new Set(Object.values(this.map).filter(o => o.slot === slot).map(o => o.spot));
-    const spot = [0, 1, 2].find(k => !used.has(k)), P = pose(b.type, spot, 0, b.level), w = this.toWorld(slot, P.lx, P.lz);
+    const spot = [0, 1, 2, 3].find(k => !used.has(k)), P = pose(b.type, spot, 0, b.level), w = this.toWorld(slot, P.lx, P.lz);
     Object.assign(a, { slot, spot, next: 'train' }); this.routeTo(a, w.x, w.z);
   }
 
@@ -158,7 +184,7 @@ export class Actors {
     const g = this.sc.getG(), occ = {};
     Object.values(this.map).forEach(o => { if (o.slot != null) occ[o.slot] = (occ[o.slot] || 0) + 1; });
     const usable = k => SLOTS[k].kind !== 'indoor' || g.indoorOpen;
-    const free = type => { for (const k in g.builds) { const b = g.builds[k]; if (b.type === type && usable(k) && (occ[k] || 0) < cap(b.level)) return +k; } return null; };
+    const free = type => { for (const k in g.builds) { const b = g.builds[k]; if (b.type === type && usable(k) && (occ[k] || 0) < cap(b.level, b.type)) return +k; } return null; };
     const inj = p.inj > 0, pre = g.timer < 12 && starters(g).includes(p) && p.fat > 10;
     if (inj || p.fat > 65 || pre) {
       let sl = free('clinic'); if (sl == null && !inj) sl = free('pool');
@@ -171,10 +197,11 @@ export class Actors {
     let best = null, bestScore = -1;
     for (const k in g.builds) {
       const b = g.builds[k], st = ST[b.type].stat; if (!st || !usable(k)) continue;
-      if ((occ[k] || 0) >= cap(b.level)) continue;
+      if (b.type === 'keeper' && p.pos !== 'GK') continue;
+      if ((occ[k] || 0) >= cap(b.level, b.type)) continue;
       const room = st === 'ALL' ? CORE.reduce((s, c) => s + p.pot - p[c], 0) / 4 : p.pot - (p[st] || 0);
       if (room <= 0.3) continue;
-      const score = room + rnd(0, 6) + b.level;
+      const score = room + rnd(0, 6) + b.level + (b.type === 'keeper' ? 12 : 0);
       if (score > bestScore) { bestScore = score; best = +k; }
     }
     if (best != null) return this.goTrain(a, best);
@@ -186,8 +213,8 @@ export class Actors {
     const g = this.sc.getG(), b = g.builds[a.slot]; if (!b) return;
     const pos = a.fig.position, coach = 1 + 0.2 * g.staff.coach, L = b.level, fac = room => Math.max(0.15, Math.min(1, room / 15));
     if (b.type === 'clinic') { p.fat = Math.max(0, p.fat - 30 * (1 + 0.15 * L)); this.sc.floatText(pos.x, 2.4, pos.z, p.inj > 0 ? 'Treating ' + Math.ceil(p.inj) + 's' : 'Fit again', '#FF8A7A'); this.emit('pop', pos.x, pos.z); return; }
-    if (b.type === 'futsal') {
-      let tot = 0; CORE.forEach(c => { const room = p.pot - p[c], gn = Math.max(0, Math.min(room, trainGain(L) * 0.35 * coach * fac(room))); p[c] = Math.round((p[c] + gn) * 100) / 100; tot += gn; });
+    if (b.type === 'futsal' || b.type === 'keeper') {
+      let tot = 0; CORE.forEach(c => { const room = p.pot - p[c], gn = Math.max(0, Math.min(room, trainGain(L) * (b.type === 'keeper' ? 0.6 : 0.35) * coach * fac(room))); p[c] = Math.round((p[c] + gn) * 100) / 100; tot += gn; });
       p.fat = Math.min(100, p.fat + 6 * (1 - 0.12 * g.staff.physio));
       this.sc.floatText(pos.x, 2.4, pos.z, '+' + (tot / 4).toFixed(1) + ' ALL', STATC.ALL); this.emit('pop', pos.x, pos.z); return;
     }

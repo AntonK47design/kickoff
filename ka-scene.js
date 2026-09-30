@@ -192,6 +192,18 @@ export class GameScene {
     if (!this.ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 1, 0), -0.3), p)) return;
     const hit = SLOTS.findIndex(sl => { const sw = Math.abs(Math.sin(sl.r)) > 0.5, hw = ((sw ? sl.d : sl.w) || 5.8) / 2, hd = ((sw ? sl.w : sl.d) || 5.8) / 2; return Math.abs(p.x - sl.x) < hw && Math.abs(p.z - sl.z) < hd; });
     if (hit >= 0) { sfx('click'); return this.onTap({ slot: hit }); }
+    if (p.z > -60) {
+      const PX = [-18, -10, 10, 18], PK = ['grass', 'lines', 'goals', 'lights'], SK = ['coach', 'scout', 'physio', 'keeper'];
+      const j = PX.findIndex(x => Math.abs(p.x - x) < 1.8);
+      let about = null;
+      if (j >= 0 && Math.abs(p.z - 19.6) < 1.7) about = 'p:' + PK[j];
+      else if (j >= 0 && Math.abs(p.z - 24) < 1.7) about = 's:' + SK[j];
+      else if (Math.abs(p.x) < 4.2 && p.z > 14.4 && p.z < 17.2) about = 'x:bench';
+      else if (Math.abs(p.x) < 5 && p.z > 25.5) about = 'x:gate';
+      else if (Math.abs(Math.abs(p.x) - 24.4) < 1.3 && Math.abs(p.z) < 4) about = 'p:goals';
+      else if (Math.abs(Math.abs(p.x) - 28.2) < 1 && [-18.8, 0, 18.8].some(z => Math.abs(p.z - z) < 1)) about = 'p:lights';
+      if (about) { sfx('click'); return this.onTap({ about, x: p.x, z: p.z }); }
+    }
     const B = this.manager.fig.position.z < -60 ? [IX - 21.4, IX + 21.4, IZ - 14.4, IZ + 14.9] : [-35, 35, -26.2, 26.2];
     this.manager.target = { x: Math.max(B[0], Math.min(B[1], p.x)), z: Math.max(B[2], Math.min(B[3], p.z)) };
     this.tapMark(p); this.onTap({ walk: true });
@@ -246,7 +258,7 @@ export class GameScene {
       let html;
       if (!b) { el.style.display = 'none'; return; }
       {
-        const d = ST[b.type], extra = (d.stat || d.train) ? ` <span style="color:#FFC940">${occ[i] || 0}/${cap(b.level)}</span>` : '';
+        const d = ST[b.type], extra = (d.stat || d.train) ? ` <span style="color:#FFC940">${occ[i] || 0}/${cap(b.level, b.type)}</span>` : '';
         html = `<span style="height:18px;min-width:18px;padding:0 5px;border-radius:9px;background:${d.color};color:#0E1F16;display:grid;place-items:center;font:900 10px Archivo">${b.level >= 5 ? 'MAX' : 'L' + b.level}</span>${d.name}${extra}`;
       }
       if (el._h !== html) { el.innerHTML = html; el._h = html; }

@@ -69,7 +69,42 @@ export function makeBuilding(c, type, L, w = 5.6, d = 5.6) {
   const g = new T.Group();
   const B = (...a) => { const m = c.box(...a); g.add(m); return m; };
   const M = (...a) => { const m = c.mesh(...a); g.add(m); return m; };
-  if (!['futsal', 'video', 'pool', 'clinic', 'cones', 'wall', 'track', 'gym'].includes(type)) B(5.6, 0.2, 5.6, { cones: '#5c9a55', wall: '#7b8a74', track: '#b9523a', gym: '#8d949c', stands: '#6f7580', food: '#b89a6e' }[type], 0, 0.1, 0);
+  if (!['futsal', 'video', 'pool', 'clinic', 'cones', 'wall', 'track', 'gym', 'passing', 'keeper', 'youth', 'off'].includes(type)) B(5.6, 0.2, 5.6, { cones: '#5c9a55', wall: '#7b8a74', track: '#b9523a', gym: '#8d949c', stands: '#6f7580', food: '#b89a6e' }[type], 0, 0.1, 0);
+  if (type === 'passing') {
+    outline(c, g, 5.8, 5.8);
+    const n = Math.min(4, 1 + L);
+    for (let k = 0; k < 4; k++) {
+      const x = (k - 1.5) * 1.35;
+      if (k < n) { B(1.0, 0.45, 0.1, '#b98a4a', x, 0.3, -1.95); B(1.1, 0.06, 0.5, '#1a1a1a', x, 0.03, -1.8); B(0.08, 0.4, 0.35, '#1a1a1a', x - 0.5, 0.2, -1.85); B(0.08, 0.4, 0.35, '#1a1a1a', x + 0.5, 0.2, -1.85); }
+      flat(c, g, 0.5, 0.06, x, 1.9, '#F7A8C8');
+    }
+    [-2.6, 2.6].forEach(x => [-2.6, 2.6].forEach(z => cone(c, g, x, z, 0.8)));
+    if (L >= 3) ballBag(c, g, 2.3, 2.4);
+    if (L >= 5) [-2.0, 2.0].forEach(x => { B(0.36, 1.5, 0.2, '#FFC940', x, 0.9, -0.3); M(new T.SphereGeometry(0.18, 10, 8), '#FFC940', x, 1.8, -0.3); });
+  }
+  if (type === 'keeper') {
+    for (let i = 0; i < 5; i++) M(new T.SphereGeometry(0.2, 12, 10), '#ffffff', -1 + i * 0.5, 0.2, 4.7);
+    cone(c, g, -2.2, 4.2, 0.7); cone(c, g, 2.2, 4.2, 0.7);
+    if (L >= 2) [-1.6, 1.6].forEach(x => B(1.4, 0.12, 1.0, '#2F6FD6', x, 0.06, -0.8));
+    if (L >= 3) { B(0.06, 1.2, 0.06, '#1a1a1a', -0.9, 0.6, 2.7); B(0.06, 1.2, 0.06, '#1a1a1a', 0.9, 0.6, 2.7); const nt = B(1.8, 1.1, 0.03, '#e8e8e8', 0, 0.65, 2.6, { transparent: true, opacity: 0.55 }); nt.rotation.x = -0.35; }
+    if (L >= 4) { for (let k = 0; k < 6; k++) flat(c, g, 0.9, 0.06, -2.4, 0.4 + k * 0.4, '#FFE08A'); flat(c, g, 0.06, 2.1, -2.85, 1.4, '#FFE08A'); flat(c, g, 0.06, 2.1, -1.95, 1.4, '#FFE08A'); }
+    if (L >= 5) { B(0.8, 0.7, 0.8, '#2a3b33', 2.4, 0.35, 5.0); M(new T.CylinderGeometry(0.18, 0.18, 0.5, 12), '#9aa3ad', 2.4, 0.95, 4.8); }
+  }
+  if (type === 'youth') {
+    B(5.6, 0.04, 5.6, '#4f9a4d', 0, 0.02, 0); outline(c, g, 5.4, 5.4);
+    [-2.4, 2.4].forEach(z => { B(0.06, 0.8, 0.06, '#ffffff', -0.8, 0.4, z); B(0.06, 0.8, 0.06, '#ffffff', 0.8, 0.4, z); B(1.66, 0.06, 0.06, '#ffffff', 0, 0.8, z); B(1.6, 0.75, 0.03, '#e8e8e8', 0, 0.4, z + (z > 0 ? 0.3 : -0.3), { transparent: true, opacity: 0.4 }); });
+    const spots = [[-1.2, -1.0], [1.0, -0.6], [-0.4, 0.8], [1.4, 1.3], [-1.6, 1.5], [0.3, -1.7], [2.0, -0.2], [-2.0, 0.1]];
+    const nK = Math.min(8, 2 + Math.round(L * 1.2));
+    for (let i = 0; i < nK; i++) {
+      const [x, z] = spots[i], kid = new T.Group(), col = i % 2 ? '#8FC7FF' : '#FFC940';
+      kid.add(c.box(0.16, 0.42, 0.18, '#1a1a1a', -0.1, 0.21, 0)); kid.add(c.box(0.16, 0.42, 0.18, '#1a1a1a', 0.1, 0.21, 0));
+      kid.add(c.box(0.42, 0.46, 0.26, col, 0, 0.66, 0)); kid.add(c.mesh(new T.SphereGeometry(0.17, 12, 10), ['#f1c9a5', '#b57a50', '#d9a47a', '#8a5634'][i % 4], 0, 1.04, 0));
+      kid.position.set(x, 0, z); kid.rotation.y = i * 1.7; g.add(kid);
+    }
+    M(new T.SphereGeometry(0.16, 12, 10), '#ffffff', 0.2, 0.16, 0.1);
+    if (L >= 3) ballBag(c, g, 2.3, 2.3);
+    if (L >= 4) { B(2.0, 0.1, 0.45, '#b98a4a', -1.2, 0.45, 2.5); [-2.0, -0.4].forEach(x => B(0.1, 0.45, 0.4, '#1a1a1a', x, 0.22, 2.5)); }
+  }
   if (type === 'cones') {
     outline(c, g, 5.8, 5.8);
     const n = 4 + L * 2;

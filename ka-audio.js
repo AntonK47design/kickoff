@@ -7,7 +7,7 @@ export function setMuted(m) { muted = m; if (m) mediaSession(false); try { local
 export function setPlatformMute(m) { platMute = m; if (master) master.gain.setTargetAtTime(muted || platMute ? 0 : 0.7, ctx.currentTime, 0.02); }
 let duckTimer = null;
 export function duck(on) {
-  duckOn = on; clearTimeout(duckTimer);
+  duckOn = on; clearTimeout(duckTimer); if (on) duckAt = performance.now();
   if (on) duckTimer = setTimeout(() => duck(false), 45000);
   if (ctx) (on ? ctx.suspend() : ctx.resume()).catch(() => {});
   if (on) mediaSession(false);
@@ -35,13 +35,16 @@ function mediaSession(on) {
     if (on) silentEl.play().catch(() => {}); else silentEl.pause();
   } catch (e) {}
 }
+let duckAt = 0;
 export function unlock() {
+  if (duckOn && performance.now() - duckAt > 1500) duck(false);
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     ctx = new AC(); master = ctx.createGain(); master.gain.value = muted || platMute ? 0 : 0.7;
     const comp = ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }
+  startMusic();
   if (ctx.state !== 'running' && !duckOn) ctx.resume().catch(() => {});
   if (!duckOn && !muted && !platMute && !document.hidden) mediaSession(true);
 }
@@ -88,3 +91,30 @@ export function sfx(name, o = {}) {
   const now = ctx.currentTime; if (GAP[name] && last[name] && now - last[name] < GAP[name]) return; last[name] = now;
   V = o.vol == null ? 1 : o.vol; try { S[name](o); } catch (e) {} V = 1;
 }
+
+// Background music: procedural 4-bar loop (I–V–vi–IV), scheduled ahead on the audio clock.
+let mus = null, musT = 0, musStep = 0, musicOn = true; try { musicOn = localStorage.getItem('ka-music') !== '0'; } catch (e) {}
+export const isMusicOn = () => musicOn;
+export function setMusic(on) { musicOn = on; try { localStorage.setItem('ka-music', on ? '1' : '0'); } catch (e) {} if (mus) mus.gain.setTargetAtTime(on ? 0.22 : 0, ctx.currentTime, 0.05); }
+const BPM = 104, SIXT = 60 / BPM / 4;
+const CH = [[48, [60, 64, 67]], [43, [59, 62, 67]], [45, [60, 64, 69]], [41, [60, 65, 69]]];
+const MEL = [72, 0, 76, 0, 79, 0, 76, 74, 0, 0, 74, 0, 71, 0, 74, 0, 76, 0, 72, 0, 69, 0, 72, 76, 77, 0, 76, 0, 72, 0, 0, 0];
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function mNote(f, t, d, type, vol, dest) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g); g.connect(dest); o.start(t); o.stop(t + d + 0.05); }
+function mHat(t, vol) { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); s.connect(f); f.connect(g); g.connect(mus); s.start(t, Math.random() * 0.5); s.stop(t + 0.06); }
+function mKick(t) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18); o.connect(g); g.connect(mus); o.start(t); o.stop(t + 0.2); }
+function musTick() {
+  if (!ctx || !mus || !musicOn || ctx.state !== 'running' || duckOn || document.hidden) { if (ctx) musT = Math.max(musT, ctx.currentTime + 0.1); return; }
+  if (musT < ctx.currentTime) musT = ctx.currentTime + 0.05;
+  while (musT < ctx.currentTime + 0.35) {
+    const s = musStep % 64, bar = Math.floor(s / 16) % 4, b = s % 16, [bass, chord] = CH[bar], t = musT;
+    if (b % 4 === 0) mKick(t);
+    if (b % 2 === 1) mHat(t, b % 4 === 3 ? 0.12 : 0.07);
+    if (b === 0 || b === 6 || b === 8 || b === 14) mNote(hz(bass), t, SIXT * 2.2, 'triangle', 0.32, mus);
+    if (b === 0 || b === 8) chord.forEach(n => mNote(hz(n), t, SIXT * 7, 'sine', 0.06, mus));
+    if (b === 4 || b === 12) chord.forEach(n => mNote(hz(n + 12), t, SIXT * 1.2, 'square', 0.012, mus));
+    const m = MEL[(musStep % 64) >> 1]; if (musStep % 2 === 0 && m && musStep % 128 >= 64) mNote(hz(m), t, SIXT * 1.8, 'triangle', 0.09, mus);
+    musT += SIXT; musStep++;
+  }
+}
+function startMusic() { if (mus || !ctx) return; mus = ctx.createGain(); mus.gain.value = musicOn ? 0.22 : 0; mus.connect(master); setInterval(musTick, 120); }
