@@ -342,7 +342,7 @@ class Component extends DCLogic {
       try { const s = JSON.parse(this.CG.getSave(D.SAVE_KEY) || (this.CG.useLocal !== false ? localStorage.getItem(D.SAVE_KEY) : null)); if (s && s.v === 1) g = s; } catch (e) {}
       this.g = g || D.newGame();
       const fix = p => { if (p.VIS == null) { const b = Math.max(5, Math.round(Math.min(p.PAC, p.SHO, p.DRI, p.PHY)) - 3); p.VIS = b; p.STA = b + 2; } if (p.PAS == null) p.PAS = Math.round((p.DRI + p.VIS) / 2); if (p.inj == null) p.inj = 0; };
-      this.g.squad.forEach(fix); this.g.recruits.forEach(fix); this.g.manual = false; this.g.squad.forEach(p => { p.inj = 0; p.fat = 0; });
+      this.g.squad.forEach(fix); this.g.recruits.forEach(fix); this.g.manual = false; if (this.g.firstWin == null && ((this.g.season || 1) > 1 || (this.g.league && this.g.league.md > 0))) this.g.firstWin = true; this.g.squad.forEach(p => { p.inj = 0; p.fat = 0; });
       { let refund = 0; for (const k in this.g.builds) { const b = this.g.builds[k], sl = D.SLOTS[k]; if (!sl || sl.kind === 'off' || sl.type !== b.type) { for (let l = 0; l < b.level; l++) refund += D.stCost(b.type, l); delete this.g.builds[k]; } }
         if (refund) { this.g.money += refund; this.toastMsg = { text: 'New station layout: refunded ' + D.fmt(refund), until: Date.now() + 7000 }; } }
       if (this.g.tut == null) this.g.tut = Object.keys(this.g.builds).length ? 99 : 0;

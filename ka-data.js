@@ -162,11 +162,12 @@ export function playMatchday(g) {
   L.schedule[L.md].forEach(([h, a]) => {
     const th = L.teams[h], ta = L.teams[a];
     const sh = h === 0 ? my : th.str + (h !== 0 && a !== 0 ? 0 : 0), sa = a === 0 ? my : ta.str;
-    const [gh, ga] = simScore(sh + 1.5, sa, h === 0 ? kp : 0, a === 0 ? kp : 0);
+    let [gh, ga] = simScore(sh + 1.5, sa, h === 0 ? kp : 0, a === 0 ? kp : 0);
+    if (!g.firstWin && (h === 0 || a === 0)) { const [w, l] = [[2, 1], [1, 0], [3, 1], [2, 0]][Math.floor(Math.random() * 4)]; if (h === 0) { gh = w; ga = l; } else { gh = l; ga = w; } }
     applyRes(th, ta, gh, ga);
     if (h === 0 || a === 0) mine = { home: h === 0, gh, ga, opp: h === 0 ? ta : th };
   });
-  L.md++;
+  L.md++; g.firstWin = true;
   const myGoals = mine.home ? mine.gh : mine.ga, theirGoals = mine.home ? mine.ga : mine.gh;
   const res = myGoals > theirGoals ? 'W' : myGoals < theirGoals ? 'L' : 'D';
   const st = starters(g);
