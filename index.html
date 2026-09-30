@@ -58,7 +58,7 @@
         <div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:#A9BDB0">NEXT MATCH · {{ venue }}</div>
         <div style="font-weight:800;font-size:15px;white-space:nowrap">vs {{ oppName }}</div>
         <div style="display:flex;gap:10px;font-size:12px;font-weight:700;color:#A9BDB0">
-          <span>You <span style="color:#F4F1E6">{{ myOvr }}</span><sc-if value="{{ showFatLoss }}" hint-placeholder-val="{{ false }}"><span style="color:#FF8A7A"> {{ fatLossText }}</span></sc-if></span>
+          <span>You <span style="color:#F4F1E6">{{ myOvr }}</span></span>
           <span>Them <span style="color:#F4F1E6">{{ oppOvr }}</span></span>
           <span style="color:{{ oddsColor }}">{{ oddsText }}</span>
         </div>
@@ -153,12 +153,7 @@
         </sc-if>
 
         <sc-if value="{{ isSquad }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:6px;padding:4px;border-radius:12px;background:#173226">
-            <div onClick="{{ setAuto }}" style="flex:1;height:44px;border-radius:9px;background:{{ autoBg }};color:{{ autoFg }};display:grid;place-items:center;font-weight:800;font-size:14px;cursor:pointer">Auto pick</div>
-            <div onClick="{{ setManual }}" style="flex:1;height:44px;border-radius:9px;background:{{ manBg }};color:{{ manFg }};display:grid;place-items:center;font-weight:800;font-size:14px;cursor:pointer">I pick</div>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:{{ lineupColor }};padding:0 4px 4px;text-wrap:pretty">{{ lineupNote }}</div>
-          <div style="position:relative;height:250px;border-radius:14px;background:#2E7A45;overflow:hidden;flex:none">
+                              <div style="position:relative;height:250px;border-radius:14px;background:#2E7A45;overflow:hidden;flex:none">
             <div style="position:absolute;inset:8px;border:2px solid rgba(244,241,230,.35);border-radius:6px"></div>
             <div style="position:absolute;left:8px;right:8px;top:50%;height:2px;background:rgba(244,241,230,.35)"></div>
             <div style="position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border:2px solid rgba(244,241,230,.35);border-radius:50%"></div>
@@ -171,8 +166,14 @@
               </div>
             </sc-for>
           </div>
+          <sc-for list="{{ squadGroups }}" as="grp" hint-placeholder-count="4">
+          <div style="flex:none;display:flex;align-items:center;gap:8px;padding:6px 2px 0">
+            <span style="font-family:'Archivo Black';font-size:14px;color:#F4F1E6;letter-spacing:.04em">{{ grp.label }}</span>
+            <span style="font-size:12px;font-weight:800;color:#A9BDB0">{{ grp.count }}</span>
+            <div style="flex:1;height:2px;background:#1B3325"></div>
+          </div>
           <div style="flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
-          <sc-for list="{{ squadItems }}" as="it" hint-placeholder-count="6">
+          <sc-for list="{{ grp.items }}" as="it" hint-placeholder-count="2">
             <div style="flex:none;position:relative;display:flex;flex-direction:column;gap:7px;padding:10px;border-radius:14px;background:{{ it.tier }};color:#0E1F16;box-shadow:{{ it.ring }};opacity:{{ it.op }}">
               <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
                 <div style="display:flex;flex-direction:column;line-height:1">
@@ -189,22 +190,17 @@
                 <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.PAC }}</b> PAC</span>
                 <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.PAS }}</b> PAS</span>
                 <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.SHO }}</b> SHO</span>
-                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.VIS }}</b> VIS</span>
-                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.DRI }}</b> DRI</span>
+                                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.DRI }}</b> DRI</span>
                 <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.PHY }}</b> PHY</span>
               </div>
-              <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800">
-                <span>STA {{ it.STA }}</span>
-                <div style="flex:1;height:6px;border-radius:3px;background:rgba(14,31,22,.25);overflow:hidden"><div style="height:100%;width:{{ it.fatPct }};background:#0E1F16"></div></div>
-              </div>
-              <div style="font-size:10px;font-weight:700;min-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.status }}</div>
+                            <div style="font-size:10px;font-weight:700;min-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.status }}</div>
               <div style="display:flex;gap:6px">
-                <div onClick="{{ it.onStart }}" style="flex:1;height:36px;border-radius:8px;background:{{ it.stBg }};color:{{ it.stFg }};display:grid;place-items:center;font-size:12px;font-weight:800;cursor:pointer;opacity:{{ it.stOp }}">{{ it.stText }}</div>
-                <div onClick="{{ it.onRelease }}" style="height:36px;padding:0 8px;border-radius:8px;background:rgba(14,31,22,.15);color:#0E1F16;display:grid;place-items:center;font-size:11px;font-weight:800;cursor:pointer">{{ it.relText }}</div>
+                                <div onClick="{{ it.onRelease }}" style="height:36px;padding:0 8px;border-radius:8px;background:rgba(14,31,22,.15);color:#0E1F16;display:grid;place-items:center;font-size:11px;font-weight:800;cursor:pointer">{{ it.relText }}</div>
               </div>
             </div>
           </sc-for>
           </div>
+          </sc-for>
         </sc-if>
 
         <sc-if value="{{ isRecruit }}" hint-placeholder-val="{{ false }}">
@@ -223,9 +219,7 @@
                 <span>DRI <span style="color:#F4F1E6">{{ it.DRI }}</span></span>
                 <span>PHY <span style="color:#F4F1E6">{{ it.PHY }}</span></span>
                 <span>PAS <span style="color:#F7A8C8">{{ it.PAS }}</span></span>
-                <span>VIS <span style="color:#C9A7FF">{{ it.VIS }}</span></span>
-                <span>STA <span style="color:#7FD6E8">{{ it.STA }}</span></span>
-              </div>
+                                              </div>
               <div onClick="{{ it.onTap }}" style="height:48px;border-radius:12px;background:#FFC940;color:#0E1F16;box-shadow:0 3px 0 #B8861B;display:grid;place-items:center;font-family:'Archivo Black';font-size:14px;cursor:pointer;opacity:{{ it.op }}" style-active="transform:translateY(2px)">{{ it.btn }}</div>
             </div>
           </sc-for>
@@ -348,7 +342,7 @@ class Component extends DCLogic {
       try { const s = JSON.parse(this.CG.getSave(D.SAVE_KEY) || (this.CG.useLocal !== false ? localStorage.getItem(D.SAVE_KEY) : null)); if (s && s.v === 1) g = s; } catch (e) {}
       this.g = g || D.newGame();
       const fix = p => { if (p.VIS == null) { const b = Math.max(5, Math.round(Math.min(p.PAC, p.SHO, p.DRI, p.PHY)) - 3); p.VIS = b; p.STA = b + 2; } if (p.PAS == null) p.PAS = Math.round((p.DRI + p.VIS) / 2); if (p.inj == null) p.inj = 0; };
-      this.g.squad.forEach(fix); this.g.recruits.forEach(fix);
+      this.g.squad.forEach(fix); this.g.recruits.forEach(fix); this.g.manual = false; this.g.squad.forEach(p => { p.inj = 0; p.fat = 0; });
       { let refund = 0; for (const k in this.g.builds) { const b = this.g.builds[k], sl = D.SLOTS[k]; if (!sl || sl.kind === 'off' || sl.type !== b.type) { for (let l = 0; l < b.level; l++) refund += D.stCost(b.type, l); delete this.g.builds[k]; } }
         if (refund) { this.g.money += refund; this.toastMsg = { text: 'New station layout: refunded ' + D.fmt(refund), until: Date.now() + 7000 }; } }
       if (this.g.tut == null) this.g.tut = Object.keys(this.g.builds).length ? 99 : 0;
@@ -547,7 +541,7 @@ class Component extends DCLogic {
       money: D.fmt(money), divName: D.DIVS[L.div].name, seasonText: 'Season ' + L.season + ' · Matchday ' + Math.min(7, L.md + 1) + '/7',
       venue: fx && fx.home ? 'HOME' : 'AWAY', oppName: opp ? opp.name : '—', myOvr: Math.round(my), showFatLoss: fatLoss >= 1, fatLossText: '−' + fatLoss + ' tired', oppOvr: opp ? Math.round(opp.str) : '—',
       oddsText: wp > 0.62 ? 'Favourites' : wp < 0.38 ? 'Underdogs' : 'Even match', oddsColor: wp > 0.62 ? '#6FE39A' : wp < 0.38 ? '#FF8A7A' : '#FFC940',
-      timerDeg: (g.timer / D.MATCH_T * 360) + 'deg', timerText: tLeft + 's', kickoff: () => { if (st.modal) return; if (this.g.timer > 2 && this.D.quickSession) { const q = this.D.quickSession(this.g, this.g.timer); if (q != null) this.toastMsg = { text: 'Quick session: +' + q.toFixed(1) + ' stats, starters rested', until: Date.now() + 4000 }; } this.playMatch(); },
+      timerDeg: (g.timer / D.MATCH_T * 360) + 'deg', timerText: tLeft + 's', kickoff: () => { if (st.modal) return; if (this.g.timer > 2 && this.D.quickSession) { const q = this.D.quickSession(this.g, this.g.timer); if (q != null) this.toastMsg = { text: 'Quick session: +' + q.toFixed(1) + ' stats', until: Date.now() + 4000 }; } this.playMatch(); },
       showHint: !st.modal && (!!(g.tut < 99 && this.tutMsg) || (this.toastMsg && this.toastMsg.until > Date.now())),
       hintText: g.tut < 99 && this.tutMsg ? this.tutMsg : this.toastMsg ? this.toastMsg.text : '',
       kickShadow: g.tut === 3 && !st.modal ? '0 4px 0 #B8861B, 0 0 0 4px #F4F1E6, 0 0 26px 8px #FFC940' : '0 4px 0 #B8861B',
@@ -569,7 +563,7 @@ class Component extends DCLogic {
     const P = st.panel;
     if (P === 'info' && st.sel != null) {
       const sl = D.SLOTS[st.sel], type = sl.type, def = D.ST[type], b = g.builds[st.sel], L = b ? b.level : 0, Lq = Math.max(1, L);
-      const locked = sl.kind === 'indoor' && !g.indoorOpen, coach = 1 + 0.2 * g.staff.coach;
+      const locked = sl.kind === 'indoor' && !g.indoorOpen, coach = (1 + 0.2 * g.staff.coach + 0.1 * g.staff.physio);
       const NAMES = { PAC: 'Pace', SHO: 'Shooting', DRI: 'Dribbling', PHY: 'Physical', VIS: 'Vision', STA: 'Stamina', PAS: 'Passing', ALL: 'Pace, Shooting, Dribbling, Physical' };
       const INFO = {
         cones: 'Players dribble a ball through a zig-zag of cones. Builds close control and quick feet.',
@@ -582,9 +576,9 @@ class Component extends DCLogic {
         keeper: 'Your goalkeeper dives to save shots fired from the edge of the box. Only GKs train here. Each level cuts goals conceded by 6%.',
         youth: 'Local kids play small-sided games. After each match there is a chance a talented youngster appears free in your Scout list. Higher levels find talent more often.',
         futsal: 'Small-sided games on a fast indoor court. Raises all four core stats a little at once.',
-        video: 'Players study match footage. Trains Vision and gives the whole team a tactics bonus.',
-        pool: 'Swimming laps builds Stamina without wear on the legs, and helps tired players recover.',
-        clinic: 'Treatment beds for injured and exhausted players. Heals injuries fast and lowers injury risk.',
+        video: 'Players study match footage. Trains Passing and gives the whole team a tactics bonus.',
+        pool: 'Swimming laps build strength and fitness. Trains Physical.',
+        clinic: 'Rehab and mobility sessions. Raises all four core stats a little at once.',
       };
       const rows = [], Y = '#F4F1E6', G = '#6FE39A', add = (label, val, color) => rows.push({ label, val, color: color || Y });
       const users = Object.values(this.sc.actors.map).filter(a => a.slot === st.sel && a.mode === 'train').length;
@@ -620,9 +614,9 @@ class Component extends DCLogic {
         lights: 'Floodlights for evening matches. Brings in more fans (+12% attendance per level) and adds a little team strength.',
         coach: 'Your head coach runs every drill. Each level adds +20% to all training gains at every station.',
         scout: 'Finds new players for the Scout list after each match. Higher levels bring better prospects, and level 3 adds a 4th option.',
-        physio: 'Looks after tired and injured players. Each level cuts match fatigue by 12% and speeds up recovery everywhere.',
+        physio: 'Keeps players fit to train harder. Each level adds +10% to all training gains.',
         keeper: 'The groundskeeper looks after the turf. Each level boosts the whole pitch bonus by 15%.',
-        bench: 'The home dugout. Tired and injured players sit here to rest when the Physio Clinic is full. Starters also rest here just before kick-off.',
+        bench: 'The home dugout. Players take a short breather here between drills.',
         gate: 'The entrance for fans on match day. More seats in the stands means more fans walk through and more ticket money.',
       };
       let title, tag, color, lvl = null, cost = null;
@@ -630,7 +624,7 @@ class Component extends DCLogic {
         add('Pitch strength now', '+' + D.pitchBonus(g).toFixed(1), G); if (key === 'lights') add('Attendance bonus', '+' + 12 * lvl + '%'); }
       else if (kind === 's') { title = D.STAFF[key].name; tag = 'STF'; color = '#8FC7FF'; lvl = g.staff[key]; if (lvl < D.MAXL) cost = D.staffCost(key, lvl);
         if (key === 'coach') add('Training gains', '+' + 20 * lvl + '%', G);
-        if (key === 'physio') add('Match fatigue', '−' + 12 * lvl + '%', G);
+        if (key === 'physio') add('Training gains', '+' + 10 * lvl + '%', G);
         if (key === 'keeper') add('Pitch bonus', '+' + 15 * lvl + '%', G); }
       else { title = key === 'bench' ? 'Home dugout' : 'Entrance gate'; tag = key === 'bench' ? 'BEN' : 'FAN'; color = '#FFC940';
         if (key === 'gate') add('Capacity', D.seats(g) + ' fans'); if (key === 'bench') add('Seats', '6'); }
@@ -696,6 +690,7 @@ class Component extends DCLogic {
           fatPct: Math.round(100 - p.fat) + '%', fatColor: p.fat > 65 ? '#FF8A7A' : p.fat > 35 ? '#FFC940' : '#6FE39A',
           relText: g.squad.length <= 7 ? 'Min 7' : st.confirm === 'rel' + p.id ? 'Confirm?' : 'Release', onRelease: () => this.release(p.id), ...stBtn };
       });
+      v.squadGroups = [['GK', 'Goalkeepers'], ['DEF', 'Defenders'], ['MID', 'Midfielders'], ['FWD', 'Forwards']].map(([pos, label]) => { const items = v.squadItems.filter(it => it.pos === pos); return { label, count: items.length, items }; }).filter(x => x.items.length);
     }
     if (P === 'scout') {
       const full = g.squad.length >= D.SQUAD_MAX;

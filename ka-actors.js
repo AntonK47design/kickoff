@@ -211,9 +211,9 @@ export class Actors {
 
   finishTrain(p, a) {
     const g = this.sc.getG(), b = g.builds[a.slot]; if (!b) return;
-    const pos = a.fig.position, coach = 1 + 0.2 * g.staff.coach, L = b.level, fac = room => Math.max(0.15, Math.min(1, room / 15));
-    if (b.type === 'clinic') { p.fat = Math.max(0, p.fat - 30 * (1 + 0.15 * L)); this.sc.floatText(pos.x, 2.4, pos.z, p.inj > 0 ? 'Treating ' + Math.ceil(p.inj) + 's' : 'Fit again', '#FF8A7A'); this.emit('pop', pos.x, pos.z); return; }
-    if (b.type === 'futsal' || b.type === 'keeper') {
+    const pos = a.fig.position, coach = (1 + 0.2 * g.staff.coach + 0.1 * g.staff.physio), L = b.level, fac = room => Math.max(0.15, Math.min(1, room / 15));
+    if (false) { p.fat = Math.max(0, p.fat - 30 * (1 + 0.15 * L)); this.sc.floatText(pos.x, 2.4, pos.z, p.inj > 0 ? 'Treating ' + Math.ceil(p.inj) + 's' : 'Fit again', '#FF8A7A'); this.emit('pop', pos.x, pos.z); return; }
+    if (b.type === 'futsal' || b.type === 'keeper' || b.type === 'clinic') {
       let tot = 0; CORE.forEach(c => { const room = p.pot - p[c], gn = Math.max(0, Math.min(room, trainGain(L) * (b.type === 'keeper' ? 0.6 : 0.35) * coach * fac(room))); p[c] = Math.round((p[c] + gn) * 100) / 100; tot += gn; });
       p.fat = Math.min(100, p.fat + 6 * (1 - 0.12 * g.staff.physio));
       this.sc.floatText(pos.x, 2.4, pos.z, '+' + (tot / 4).toFixed(1) + ' ALL', STATC.ALL); this.emit('pop', pos.x, pos.z); return;

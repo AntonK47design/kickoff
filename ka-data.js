@@ -14,12 +14,12 @@ export const ST = {
   stands: { name: 'Stands', cost: 300, color: '#D7D0BF', tag: 'SEAT', desc: '+150 seats for home matches per level' },
   food: { name: 'Food Stall', cost: 350, color: '#F4F1E6', tag: 'FOOD', desc: 'Home fans spend money on match day' },
   futsal: { name: 'Futsal Court', stat: 'ALL', pad: 'All 4 stats', cost: 1500, color: '#FFC940', tag: 'ALL', desc: 'Small-sided games train PAC, SHO, DRI and PHY a little' },
-  video: { name: 'Video Room', stat: 'VIS', cost: 1200, color: '#C9A7FF', tag: 'VIS', desc: 'Trains vision. +0.6 tactics bonus per level' },
-  pool: { name: 'Pool', stat: 'STA', cost: 1800, color: '#7FD6E8', tag: 'STA', desc: 'Trains stamina and speeds up recovery' },
+  video: { name: 'Video Room', stat: 'PAS', cost: 1200, color: '#C9A7FF', tag: 'PAS', desc: 'Trains passing. +0.6 tactics bonus per level' },
+  pool: { name: 'Pool', stat: 'PHY', cost: 1800, color: '#7FD6E8', tag: 'PHY', desc: 'Swimming laps train physical' },
   passing: { name: 'Passing Wall', stat: 'PAS', cost: 300, color: '#F7A8C8', tag: 'PAS', desc: 'Rebound boards train passing' },
   keeper: { name: 'Goalkeeper Area', stat: 'ALL', pad: 'GK only', cost: 350, color: '#FFE08A', tag: 'GK', desc: 'Trains goalkeepers. Each level: -6% goals conceded' },
   youth: { name: 'Youth Corner', pad: 'Finds talent', cost: 500, color: '#6FE39A', tag: 'YTH', desc: 'Local kids train here. Sometimes a free talent joins your scout list' },
-  clinic: { name: 'Physio Clinic', train: true, pad: 'Recovery', cost: 1600, color: '#FF8A7A', tag: 'MED', desc: 'Heals injuries fast and lowers injury risk' },
+  clinic: { name: 'Physio Clinic', stat: 'ALL', pad: 'All 4 stats', cost: 1600, color: '#FF8A7A', tag: 'ALL', desc: 'Rehab sessions train all 4 core stats a little' },
 };
 export const ORDER = ['cones', 'wall', 'track', 'gym', 'stands', 'food'];
 export const PITCH = {
@@ -31,7 +31,7 @@ export const PITCH = {
 export const STAFF = {
   coach: { name: 'Coach', cost: 300, desc: '+20% training gains per level' },
   scout: { name: 'Scout', cost: 300, desc: 'Better prospects. Level 3 adds a 4th option' },
-  physio: { name: 'Physio', cost: 300, desc: '-12% fatigue and faster recovery per level' },
+  physio: { name: 'Physio', cost: 300, desc: '+10% training gains per level' },
   keeper: { name: 'Groundskeeper', cost: 300, desc: '+15% pitch strength bonus per level' },
 };
 export const STATC = { PAC: '#6FE39A', SHO: '#FF8A5B', DRI: '#FFC940', PHY: '#8FC7FF', VIS: '#C9A7FF', STA: '#7FD6E8', PAS: '#F7A8C8', ALL: '#F4F1E6' };
@@ -60,7 +60,7 @@ export const pickA = a => a[Math.floor(Math.random() * a.length)];
 export const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const fmt = n => { n = Math.round(n); const s = n < 0 ? '-' : ''; n = Math.abs(n); if (n >= 1e6) return s + '$' + (n / 1e6).toFixed(2) + 'M'; if (n >= 1e5) return s + '$' + (n / 1e3).toFixed(0) + 'k'; if (n >= 1e4) return s + '$' + (n / 1e3).toFixed(1) + 'k'; return s + '$' + n.toLocaleString('en-US'); };
 export const ord = n => n + (['th', 'st', 'nd', 'rd'][((n % 100) - 20) % 10] || ['th', 'st', 'nd', 'rd'][n % 100] || 'th');
-export const ovr = p => (p.PAC + p.SHO + p.DRI + p.PHY + (p.VIS ?? p.PHY) + (p.STA ?? p.PHY) + (p.PAS ?? p.DRI)) / 7;
+export const ovr = p => (p.PAC + p.SHO + p.DRI + p.PHY + (p.PAS ?? p.DRI)) / 5;
 export const pois = l => { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= Math.random(); } while (p > L); return k - 1; };
 export const seeded = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 export const hash = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
@@ -125,7 +125,7 @@ export function pitchBonus(g) {
 }
 export function teamStrength(g) {
   const st = starters(g); if (!st.length) return 0;
-  const avg = st.reduce((s, p) => { const stam = Math.max(0.3, Math.min(1, 1 - ((p.STA || 30) - 30) / 200)); return s + ovr(p) * (1 - p.fat / 500 * stam) * (p.inj > 0 ? 0.6 : 1); }, 0) / st.length;
+  const avg = st.reduce((s, p) => { const stam = Math.max(0.3, Math.min(1, 1 - ((p.STA || 30) - 30) / 200)); return s + ovr(p) * (p.inj > 0 ? 0.6 : 1); }, 0) / st.length;
   return avg + pitchBonus(g) * 1.0 + tacticsBonus(g) - (st.some(p => p.pos === 'GK') ? 0 : 6);
 }
 export function bestLevel(g, type) { let l = 0; for (const k in g.builds) if (g.builds[k].type === type) l = Math.max(l, g.builds[k].level); return l; }
@@ -190,7 +190,7 @@ export function playMatchday(g) {
   const fatAdd = 26 * (1 - 0.12 * g.staff.physio);
   g.squad.forEach(p => { if (st.includes(p)) p.fat = Math.min(100, p.fat + fatAdd); });
   const injuries = [], cl = bestLevel(g, 'clinic');
-  st.forEach(p => { const ch = Math.max(0.01, 0.06 * (1 + p.fat / 100) * (1 - 0.12 * cl) * (1 - ((p.STA || 30) - 30) / 250)); if (!(p.inj > 0) && Math.random() < ch) { p.inj = Math.round(rnd(60, 140)); injuries.push(p.name); } });
+  st.forEach(p => { const ch = Math.max(0.01, 0.06 * (1 + p.fat / 100) * (1 - 0.12 * cl) * (1 - ((p.STA || 30) - 30) / 250)); if (false) { p.inj = Math.round(rnd(60, 140)); injuries.push(p.name); } });
   g.money += total;
   genRecruits(g);
   const yl = bestLevel(g, 'youth');
@@ -216,13 +216,13 @@ export function endSeason(g) {
 
 export function quickSession(g, secs) {
   const t = Math.max(0, secs) * 0.6; if (t < 1) return null;
-  const coach = 1 + 0.2 * g.staff.coach, stations = [];
+  const coach = (1 + 0.2 * g.staff.coach + 0.1 * g.staff.physio), stations = [];
   for (const k in g.builds) { const b = g.builds[k], d = ST[b.type]; if (d && d.stat && (SLOTS[k].kind !== 'indoor' || g.indoorOpen)) stations.push(b); }
   const st = starters(g); let gained = 0;
   g.squad.forEach(p => {
     if (!(p.inj > 0) && stations.length) {
       const n = Math.floor(t / 7 + Math.random());
-      for (let i = 0; i < n; i++) { const b = stations[Math.floor(Math.random() * stations.length)], s = ST[b.type].stat, room = p.pot - (p[s] || 0), gn = Math.max(0, Math.min(room, trainGain(b.level) * coach * Math.max(0.15, Math.min(1, room / 15)))); p[s] = Math.round(((p[s] || 0) + gn) * 100) / 100; gained += gn; }
+      for (let i = 0; i < n; i++) { const b = stations[Math.floor(Math.random() * stations.length)], s0 = ST[b.type].stat, s = s0 === 'ALL' ? ['PAC', 'SHO', 'DRI', 'PHY'][Math.floor(Math.random() * 4)] : s0, room = p.pot - (p[s] || 0), gn = Math.max(0, Math.min(room, trainGain(b.level) * coach * Math.max(0.15, Math.min(1, room / 15)))); p[s] = Math.round(((p[s] || 0) + gn) * 100) / 100; gained += gn; }
     }
     if (p.inj > 0) p.inj = Math.max(0, p.inj - t * (1 + 0.25 * g.staff.physio));
     if (st.includes(p)) p.fat = Math.max(0, p.fat - t * 3 * (1 + 0.25 * g.staff.physio));
