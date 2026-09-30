@@ -315,11 +315,11 @@ class Component extends DCLogic {
 
   async componentDidMount() {
     try {
-      this.CG = await import('./ka-cg.js');
+      this.CG = await import('./ka-cg.js?v=munxl0i1');
       await this.CG.init(); this.CG.loadingStart();
-      this.D = await import('./ka-data.js');
-      this.A = await import('./ka-audio.js');
-      const { GameScene } = await import('./ka-scene.js');
+      this.D = await import('./ka-data.js?v=munxl0i1');
+      this.A = await import('./ka-audio.js?v=munxl0i1');
+      const { GameScene } = await import('./ka-scene.js?v=munxl0i1');
       const D = this.D;
       let g = null;
       try { const s = JSON.parse(this.CG.getSave(D.SAVE_KEY) || (this.CG.useLocal !== false ? localStorage.getItem(D.SAVE_KEY) : null)); if (s && s.v === 1) g = s; } catch (e) {}
@@ -532,8 +532,8 @@ class Component extends DCLogic {
     const nav = [['squad', 'Squad', g.squad.length + '/' + D.SQUAD_MAX], ['scout', 'Scout', g.recruits.length + ' new'], ['league', 'League', D.ord(D.sortTable(L).findIndex(t => t.me) + 1)]];
     v.navItems = nav.map(([k, label, sub]) => ({ label, sub, bg: st.panel === k ? '#FFC940' : '#0E1F16', fg: st.panel === k ? '#0E1F16' : '#F4F1E6', onTap: () => this.openPanel(k) }));
     if (st.modal === 'pause') { const d = this.A.debugState(); v.audioInfo = 'audio ' + d.ctx + ' · t ' + d.time + ' · ' + d.rate + 'Hz · gain ' + d.gain + (d.muted ? ' · muted' : '') + (d.platMute ? ' · platform-muted' : '') + (d.duckOn ? ' · ad-paused' : ''); v.testSound = () => { this.A.test(); setTimeout(() => this.forceUpdate(), 400); }; }
-    v.musicLabel = this.A.isMusicOn() ? 'Music: On' : 'Music: Off';
-    v.doMusic = () => { this.A.unlock(); this.A.setMusic(!this.A.isMusicOn()); this.A.sfx('click'); this.forceUpdate(); };
+    v.musicLabel = (this.A && this.A.isMusicOn && !this.A.isMusicOn()) ? 'Music: Off' : 'Music: On';
+    v.doMusic = () => { if (!this.A.setMusic) return; this.A.unlock(); this.A.setMusic(!this.A.isMusicOn()); this.A.sfx('click'); this.forceUpdate(); };
     v.doTestSound = () => { this.A.test(); setTimeout(() => this.forceUpdate(), 400); };
     v.doPause = () => { this.A.sfx('click'); this.setState({ modal: 'pause', panel: null }); };
     const muted = this.A.isMuted();

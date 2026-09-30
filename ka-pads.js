@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.js';
-import { sfx } from './ka-audio.js';
-import { IX, IZ, SLOTS, ST, PITCH, STAFF, MAXL, stCost, pitchCost, staffCost, fmt, genRecruits } from './ka-data.js';
+import { sfx } from './ka-audio.js?v=munxl0i1';
+import { IX, IZ, SLOTS, ST, PITCH, STAFF, MAXL, stCost, pitchCost, staffCost, fmt, genRecruits } from './ka-data.js?v=munxl0i1';
 
 const onPitch = (x, z) => Math.abs(x) < 25.2 && Math.abs(z) < 16.2;
 const groundY = (x, z) => ((onPitch(x, z) || (Math.abs(x - IX) < 22.4 && Math.abs(z - IZ) < 15.4)) ? 0.3 : 0);

@@ -1,11 +1,11 @@
 import * as T from './vendor/three.module.js';
-import { PW, PD, SLOTS, ST, cap, seeded, IX, IZ } from './ka-data.js';
-import { makeBuilding, tickScreens } from './ka-build.js';
-import { Actors } from './ka-actors.js';
-import { Manager, Pads } from './ka-pads.js';
-import { decorate } from './ka-deco.js';
-import { Guide } from './ka-guide.js';
-import { sfx } from './ka-audio.js';
+import { PW, PD, SLOTS, ST, cap, seeded, IX, IZ } from './ka-data.js?v=munxl0i1';
+import { makeBuilding, tickScreens } from './ka-build.js?v=munxl0i1';
+import { Actors } from './ka-actors.js?v=munxl0i1';
+import { Manager, Pads } from './ka-pads.js?v=munxl0i1';
+import { decorate } from './ka-deco.js?v=munxl0i1';
+import { Guide } from './ka-guide.js?v=munxl0i1';
+import { sfx } from './ka-audio.js?v=munxl0i1';
 
 export class GameScene {
   constructor(el, floatEl, getG, onTap) {

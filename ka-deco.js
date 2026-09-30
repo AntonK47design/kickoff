@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.js';
-import { seeded } from './ka-data.js';
+import { seeded } from './ka-data.js?v=munxl0i1';
 
 const BOARD_TXT = [['KICKOFF ACADEMY', '#0E1F16', '#FFC940'], ['TRAIN HARD · PLAY FAIR', '#FF6B2C', '#0E1F16'], ['GRASSROOTS FOOTBALL', '#F4F1E6', '#0E1F16']];
 function boardTextures() {

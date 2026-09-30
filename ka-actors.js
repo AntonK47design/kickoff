@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.js';
-import { SLOTS, ST, SKIN, STATC, cap, trainGain, hash, rnd, IX, IZ, starters } from './ka-data.js';
-import { sfx } from './ka-audio.js';
+import { SLOTS, ST, SKIN, STATC, cap, trainGain, hash, rnd, IX, IZ, starters } from './ka-data.js?v=munxl0i1';
+import { sfx } from './ka-audio.js?v=munxl0i1';
 
 const BENCH = [-3, -1.8, -0.6, 0.6, 1.8, 3];
 const SPEED = 4.2, TRAIN_T = 6.5, BASE_Y = 0.5;
