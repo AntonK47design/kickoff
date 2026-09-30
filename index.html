@@ -58,7 +58,7 @@
         <div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:#A9BDB0">NEXT MATCH · {{ venue }}</div>
         <div style="font-weight:800;font-size:15px;white-space:nowrap">vs {{ oppName }}</div>
         <div style="display:flex;gap:10px;font-size:12px;font-weight:700;color:#A9BDB0">
-          <span>You <span style="color:#F4F1E6">{{ myOvr }}</span></span>
+          <span>You <span style="color:#F4F1E6">{{ myOvr }}</span><sc-if value="{{ showFatLoss }}" hint-placeholder-val="{{ false }}"><span style="color:#FF8A7A"> {{ fatLossText }}</span></sc-if></span>
           <span>Them <span style="color:#F4F1E6">{{ oppOvr }}</span></span>
           <span style="color:{{ oddsColor }}">{{ oddsText }}</span>
         </div>
@@ -158,30 +158,53 @@
             <div onClick="{{ setManual }}" style="flex:1;height:44px;border-radius:9px;background:{{ manBg }};color:{{ manFg }};display:grid;place-items:center;font-weight:800;font-size:14px;cursor:pointer">I pick</div>
           </div>
           <div style="font-size:12px;font-weight:700;color:{{ lineupColor }};padding:0 4px 4px;text-wrap:pretty">{{ lineupNote }}</div>
-          <sc-for list="{{ squadItems }}" as="it" hint-placeholder-count="7">
-            <div style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:14px;background:#173226">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:40px;height:40px;border-radius:10px;background:{{ it.badgeBg }};color:#0E1F16;display:grid;place-items:center;font-family:'Archivo Black';font-size:16px;flex:none">{{ it.ovr }}</div>
-                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
-                  <div style="display:flex;gap:6px;align-items:baseline"><span style="font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.name }}</span><span style="font-size:11px;font-weight:800;color:#A9BDB0">{{ it.pos }}</span></div>
-                  <div style="font-size:11px;font-weight:700;color:#A9BDB0">{{ it.status }}</div>
+          <div style="position:relative;height:250px;border-radius:14px;background:#2E7A45;overflow:hidden;flex:none">
+            <div style="position:absolute;inset:8px;border:2px solid rgba(244,241,230,.35);border-radius:6px"></div>
+            <div style="position:absolute;left:8px;right:8px;top:50%;height:2px;background:rgba(244,241,230,.35)"></div>
+            <div style="position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border:2px solid rgba(244,241,230,.35);border-radius:50%"></div>
+            <div style="position:absolute;left:50%;bottom:8px;width:96px;height:34px;margin-left:-48px;border:2px solid rgba(244,241,230,.35);border-bottom:none"></div>
+            <div style="position:absolute;left:50%;top:8px;width:96px;height:34px;margin-left:-48px;border:2px solid rgba(244,241,230,.35);border-top:none"></div>
+            <sc-for list="{{ pitchDots }}" as="d" hint-placeholder-count="7">
+              <div style="position:absolute;left:{{ d.x }};top:{{ d.y }};transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;width:70px">
+                <div style="width:38px;height:38px;border-radius:50%;background:{{ d.bg }};color:#0E1F16;display:grid;place-items:center;font-family:'Archivo Black';font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.3)">{{ d.ovr }}</div>
+                <div style="max-width:70px;padding:2px 6px;border-radius:5px;background:#0E1F16;color:#F4F1E6;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <sc-for list="{{ squadItems }}" as="it" hint-placeholder-count="6">
+            <div style="flex:none;position:relative;display:flex;flex-direction:column;gap:7px;padding:10px;border-radius:14px;background:{{ it.tier }};color:#0E1F16;box-shadow:{{ it.ring }};opacity:{{ it.op }}">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+                <div style="display:flex;flex-direction:column;line-height:1">
+                  <span style="font-family:'Archivo Black';font-size:28px">{{ it.ovr }}</span>
+                  <span style="font-size:12px;font-weight:800;letter-spacing:.06em">{{ it.pos }}</span>
                 </div>
-                <div onClick="{{ it.onStart }}" style="height:36px;min-width:66px;padding:0 10px;border-radius:8px;background:{{ it.stBg }};color:{{ it.stFg }};display:grid;place-items:center;font-size:12px;font-weight:800;cursor:pointer;opacity:{{ it.stOp }}">{{ it.stText }}</div>
-                <div onClick="{{ it.onRelease }}" style="height:36px;padding:0 10px;border-radius:8px;background:#0E1F16;color:#FF8A7A;display:grid;place-items:center;font-size:11px;font-weight:800;cursor:pointer">{{ it.relText }}</div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                  <span style="padding:2px 6px;border-radius:5px;background:#0E1F16;color:{{ it.tagFg }};font-size:9px;font-weight:800;letter-spacing:.08em">{{ it.tag }}</span>
+                  <span style="font-size:10px;font-weight:800">POT {{ it.pot }}</span>
+                </div>
               </div>
-              <div style="display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;font-weight:800;color:#A9BDB0">
-                <span>PAC <span style="color:#F4F1E6">{{ it.PAC }}</span></span>
-                <span>SHO <span style="color:#F4F1E6">{{ it.SHO }}</span></span>
-                <span>DRI <span style="color:#F4F1E6">{{ it.DRI }}</span></span>
-                <span>PHY <span style="color:#F4F1E6">{{ it.PHY }}</span></span>
-                <span>PAS <span style="color:#F7A8C8">{{ it.PAS }}</span></span>
-                <span>VIS <span style="color:#C9A7FF">{{ it.VIS }}</span></span>
-                <span>STA <span style="color:#7FD6E8">{{ it.STA }}</span></span>
-                <span style="margin-left:auto">POT <span style="color:#FFC940">{{ it.pot }}</span></span>
+              <div style="padding:4px 0;border-top:1px solid rgba(14,31,22,.25);border-bottom:1px solid rgba(14,31,22,.25);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center">{{ it.surname }}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:12px;font-weight:700">
+                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.PAC }}</b> PAC</span>
+                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.PAS }}</b> PAS</span>
+                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.SHO }}</b> SHO</span>
+                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.VIS }}</b> VIS</span>
+                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.DRI }}</b> DRI</span>
+                <span><b style="font-family:'Archivo Black';font-weight:400">{{ it.PHY }}</b> PHY</span>
               </div>
-              <div style="height:6px;border-radius:3px;background:#0E1F16;overflow:hidden"><div style="height:100%;width:{{ it.fatPct }};background:{{ it.fatColor }}"></div></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800">
+                <span>STA {{ it.STA }}</span>
+                <div style="flex:1;height:6px;border-radius:3px;background:rgba(14,31,22,.25);overflow:hidden"><div style="height:100%;width:{{ it.fatPct }};background:#0E1F16"></div></div>
+              </div>
+              <div style="font-size:10px;font-weight:700;min-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.status }}</div>
+              <div style="display:flex;gap:6px">
+                <div onClick="{{ it.onStart }}" style="flex:1;height:36px;border-radius:8px;background:{{ it.stBg }};color:{{ it.stFg }};display:grid;place-items:center;font-size:12px;font-weight:800;cursor:pointer;opacity:{{ it.stOp }}">{{ it.stText }}</div>
+                <div onClick="{{ it.onRelease }}" style="height:36px;padding:0 8px;border-radius:8px;background:rgba(14,31,22,.15);color:#0E1F16;display:grid;place-items:center;font-size:11px;font-weight:800;cursor:pointer">{{ it.relText }}</div>
+              </div>
             </div>
           </sc-for>
+          </div>
         </sc-if>
 
         <sc-if value="{{ isRecruit }}" hint-placeholder-val="{{ false }}">
@@ -516,13 +539,15 @@ class Component extends DCLogic {
     if (!this.g) return Object.assign(base, { money: '$0', navItems: [] });
     const D = this.D, g = this.g, L = g.league, st = this.state, fx = D.nextFixture(g);
     const my = D.teamStrength(g), money = g.money;
+    const fats = g.squad.map(p => p.fat); g.squad.forEach(p => { p.fat = 0; }); const myFresh = D.teamStrength(g); g.squad.forEach((p, i) => { p.fat = fats[i]; });
+    const fatLoss = Math.round(myFresh) - Math.round(my);
     const opp = fx ? fx.opp : null, wp = opp ? D.winProb(my + (fx.home ? 1.5 : -1.5), opp.str) : 0.5;
     const tLeft = Math.max(0, Math.ceil(g.timer));
     const v = Object.assign(base, {
       money: D.fmt(money), divName: D.DIVS[L.div].name, seasonText: 'Season ' + L.season + ' · Matchday ' + Math.min(7, L.md + 1) + '/7',
-      venue: fx && fx.home ? 'HOME' : 'AWAY', oppName: opp ? opp.name : '—', myOvr: Math.round(my), oppOvr: opp ? Math.round(opp.str) : '—',
+      venue: fx && fx.home ? 'HOME' : 'AWAY', oppName: opp ? opp.name : '—', myOvr: Math.round(my), showFatLoss: fatLoss >= 1, fatLossText: '−' + fatLoss + ' tired', oppOvr: opp ? Math.round(opp.str) : '—',
       oddsText: wp > 0.62 ? 'Favourites' : wp < 0.38 ? 'Underdogs' : 'Even match', oddsColor: wp > 0.62 ? '#6FE39A' : wp < 0.38 ? '#FF8A7A' : '#FFC940',
-      timerDeg: (g.timer / D.MATCH_T * 360) + 'deg', timerText: tLeft + 's', kickoff: () => { if (!st.modal) this.playMatch(); },
+      timerDeg: (g.timer / D.MATCH_T * 360) + 'deg', timerText: tLeft + 's', kickoff: () => { if (st.modal) return; if (this.g.timer > 2 && this.D.quickSession) { const q = this.D.quickSession(this.g, this.g.timer); if (q != null) this.toastMsg = { text: 'Quick session: +' + q.toFixed(1) + ' stats, starters rested', until: Date.now() + 4000 }; } this.playMatch(); },
       showHint: !st.modal && (!!(g.tut < 99 && this.tutMsg) || (this.toastMsg && this.toastMsg.until > Date.now())),
       hintText: g.tut < 99 && this.tutMsg ? this.tutMsg : this.toastMsg ? this.toastMsg.text : '',
       kickShadow: g.tut === 3 && !st.modal ? '0 4px 0 #B8861B, 0 0 0 4px #F4F1E6, 0 0 26px 8px #FFC940' : '0 4px 0 #B8861B',
@@ -655,13 +680,19 @@ class Component extends DCLogic {
         : lineup.length + '/7 picked.' + (lineup.length < 7 ? ' Empty spots are filled automatically.' : '') + (injPick ? ' Injured picks are replaced on match day.' : '') + (noGK ? ' No goalkeeper: −6 team strength!' : '');
       v.lineupColor = manual && (noGK || injPick) ? '#FF8A7A' : '#A9BDB0';
       v.panelSub = (manual ? 'You pick the lineup' : 'Auto lineup') + ' · strength ' + Math.round(D.teamStrength(g));
+      const tierOf = p => { const o = D.ovr(p); return o >= 75 ? '#FFC940' : o >= 55 ? '#C9D3CE' : '#D9A06F'; };
+      const lineP = manual ? lineup.map(id => g.squad.find(p => p.id === id)).filter(Boolean) : sts;
+      const rowY = { FWD: '20%', MID: '44%', DEF: '66%', GK: '87%' };
+      v.pitchDots = [];
+      ['FWD', 'MID', 'DEF', 'GK'].forEach(pos => { const r = lineP.filter(p => p.pos === pos); r.forEach((p, i) => v.pitchDots.push({ x: ((i + 1) / (r.length + 1) * 100).toFixed(1) + '%', y: rowY[pos] || '50%', ovr: Math.floor(D.ovr(p)), bg: tierOf(p), name: p.name.split(' ').slice(1).join(' ') || p.name })); });
       v.squadItems = g.squad.slice().sort((a, b) => (starters.has(b.id) - starters.has(a.id)) || D.ovr(b) - D.ovr(a)).map(p => {
         const inL = manual ? lineup.includes(p.id) : starters.has(p.id), full = manual && lineup.length >= 7 && !inL;
-        const stBtn = { stText: inL ? 'Starting' : full ? 'Full' : 'Sub', stBg: inL ? '#FFC940' : '#0E1F16', stFg: inL ? '#0E1F16' : '#F4F1E6', stOp: full ? 0.45 : 1,
+        const stBtn = { stText: inL ? 'Starting' : full ? 'Full' : 'Sub', stBg: '#0E1F16', stFg: inL ? '#FFC940' : '#F4F1E6', stOp: full ? 0.45 : 1,
           onStart: () => { toManual(); const L = g.lineup, i = L.indexOf(p.id); if (i >= 0) L.splice(i, 1); else if (L.length < 7) L.push(p.id); else return; this.A.sfx('click'); this.save(); this.forceUpdate(); } };
         const a = this.sc.actors.map[p.id], sl = a && a.slot != null && g.builds[a.slot] ? D.ST[g.builds[a.slot].type].name : null;
         return { name: p.name, pos: p.pos, ovr: Math.floor(D.ovr(p)), pot: p.pot, PAC: Math.floor(p.PAC), SHO: Math.floor(p.SHO), DRI: Math.floor(p.DRI), PHY: Math.floor(p.PHY), PAS: Math.floor(p.PAS || 0), VIS: Math.floor(p.VIS || 0), STA: Math.floor(p.STA || 0),
-          badgeBg: starters.has(p.id) ? '#FFC940' : '#8FA89A', status: (p.inj > 0 ? 'Injured · ' + Math.ceil(p.inj) + 's' : starters.has(p.id) ? 'Starter' : 'Sub') + ' · ' + (a && a.mode === 'walk' && sl ? 'Going to ' + sl : a && a.mode === 'train' && sl ? 'Training at ' + sl : act[a ? a.mode : 'idle']),
+          badgeBg: starters.has(p.id) ? '#FFC940' : '#8FA89A', surname: p.name.split(' ').slice(1).join(' ') || p.name, tier: tierOf(p), ring: inL ? '0 0 0 3px #F4F1E6, 0 4px 0 rgba(0,0,0,.3)' : '0 4px 0 rgba(0,0,0,.3)', op: p.inj > 0 ? 0.7 : 1,
+          tag: p.inj > 0 ? 'INJURED' : inL ? 'STARTER' : 'SUB', tagFg: p.inj > 0 ? '#FF8A7A' : inL ? '#FFC940' : '#A9BDB0', status: (a && a.mode === 'walk' && sl ? 'Going to ' + sl : a && a.mode === 'train' && sl ? 'Training at ' + sl : act[a ? a.mode : 'idle']),
           fatPct: Math.round(100 - p.fat) + '%', fatColor: p.fat > 65 ? '#FF8A7A' : p.fat > 35 ? '#FFC940' : '#6FE39A',
           relText: g.squad.length <= 7 ? 'Min 7' : st.confirm === 'rel' + p.id ? 'Confirm?' : 'Release', onRelease: () => this.release(p.id), ...stBtn };
       });

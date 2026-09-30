@@ -44,12 +44,36 @@ function timer(c, g, x, z) {
   const face = new T.Mesh(new T.PlaneGeometry(0.92, 0.42), new T.MeshBasicMaterial({ map: timerTex() })); face.position.set(0, 1.6, 0.115); t.add(face);
   g.add(t);
 }
-let scr = null, lastTick = -1;
+let scr = null, lastTick = -1, youthRigs = [], yLast = -1;
+function tickYouth(t) {
+  const dt = yLast < 0 ? 0 : Math.min(0.05, t - yLast); yLast = t;
+  youthRigs = youthRigs.filter(r => r.g.parent);
+  youthRigs.forEach(r => {
+    const K = r.kids, n = K.length; if (n < 2) return;
+    K.forEach((k, i) => {
+      k.wt -= dt; if (k.wt <= 0) { k.tx = Math.max(-2.1, Math.min(2.1, k.hx + (Math.random() - 0.5) * 1.4)); k.tz = Math.max(-2.0, Math.min(2.0, k.hz + (Math.random() - 0.5) * 1.4)); k.wt = 1 + Math.random() * 2; }
+      const dx = k.tx - k.o.position.x, dz = k.tz - k.o.position.z, dd = Math.hypot(dx, dz), mv = dd > 0.05;
+      if (mv) { const s = Math.min(dd, 1.3 * dt); k.o.position.x += dx / dd * s; k.o.position.z += dz / dd * s; }
+      const b = r.ball.position, look = (i === r.to || i === r.from) ? Math.atan2(b.x - k.o.position.x, b.z - k.o.position.z) : mv ? Math.atan2(dx, dz) : k.o.rotation.y;
+      let dr = look - k.o.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); k.o.rotation.y += dr * Math.min(1, dt * 8);
+      const sw = mv ? Math.sin(t * 13 + i) * 0.7 : 0; k.kick = Math.max(0, k.kick - dt * 4);
+      k.legs[0].rotation.x = sw; k.legs[1].rotation.x = -sw - k.kick * 1.4; k.arms[0].rotation.x = -sw * 0.8; k.arms[1].rotation.x = sw * 0.8;
+      k.o.position.y = mv ? Math.abs(Math.sin(t * 13 + i)) * 0.05 : 0;
+    });
+    const A = K[r.from].o.position, B2 = K[r.to].o.position;
+    if (r.p < 1) { r.p = Math.min(1, r.p + dt / 0.7); const e = r.p; r.ball.position.set(A.x + (B2.x - A.x) * e, 0.16 + Math.sin(e * Math.PI) * 0.5, A.z + (B2.z - A.z) * e); r.ball.rotation.x += dt * 12; }
+    else {
+      const f = K[r.to].o; r.ball.position.set(f.position.x + Math.sin(f.rotation.y) * 0.3, 0.16, f.position.z + Math.cos(f.rotation.y) * 0.3);
+      r.hold -= dt; if (r.hold <= 0) { r.from = r.to; let nx; do { nx = Math.floor(Math.random() * n); } while (nx === r.from); r.to = nx; r.p = 0; r.hold = 0.5 + Math.random() * 0.8; K[r.from].kick = 1; }
+    }
+  });
+}
 export function screenTex() {
   if (!scr) { const cv = document.createElement('canvas'); cv.width = 256; cv.height = 144; const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace; scr = { cv, tex, last: -1 }; }
   return scr.tex;
 }
 export function tickScreens(t) {
+  tickYouth(t);
   if (t - lastTick < 0.08) return; lastTick = t;
   if (tmr) { const x = tmr.cv.getContext('2d'); x.fillStyle = '#0b0b0b'; x.fillRect(0, 0, 160, 72); x.fillStyle = '#E6FF3A'; x.font = 'bold 46px monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; const s = Math.floor(t * 10) % 600; x.fillText('0' + Math.floor(s / 100) + ':' + String(Math.floor(s / 10) % 10) + (s % 10), 80, 38); tmr.tex.needsUpdate = true; }
   if (!scr) return;
@@ -94,14 +118,17 @@ export function makeBuilding(c, type, L, w = 5.6, d = 5.6) {
     B(5.6, 0.04, 5.6, '#4f9a4d', 0, 0.02, 0); outline(c, g, 5.4, 5.4);
     [-2.4, 2.4].forEach(z => { B(0.06, 0.8, 0.06, '#ffffff', -0.8, 0.4, z); B(0.06, 0.8, 0.06, '#ffffff', 0.8, 0.4, z); B(1.66, 0.06, 0.06, '#ffffff', 0, 0.8, z); B(1.6, 0.75, 0.03, '#e8e8e8', 0, 0.4, z + (z > 0 ? 0.3 : -0.3), { transparent: true, opacity: 0.4 }); });
     const spots = [[-1.2, -1.0], [1.0, -0.6], [-0.4, 0.8], [1.4, 1.3], [-1.6, 1.5], [0.3, -1.7], [2.0, -0.2], [-2.0, 0.1]];
-    const nK = Math.min(8, 2 + Math.round(L * 1.2));
+    const nK = Math.min(8, 2 + Math.round(L * 1.2)), rigKids = [];
     for (let i = 0; i < nK; i++) {
       const [x, z] = spots[i], kid = new T.Group(), col = i % 2 ? '#8FC7FF' : '#FFC940';
-      kid.add(c.box(0.16, 0.42, 0.18, '#1a1a1a', -0.1, 0.21, 0)); kid.add(c.box(0.16, 0.42, 0.18, '#1a1a1a', 0.1, 0.21, 0));
+      const legs = [-0.1, 0.1].map(lx => { const hip = new T.Group(); hip.position.set(lx, 0.42, 0); hip.add(c.box(0.16, 0.42, 0.18, '#1a1a1a', 0, -0.21, 0)); kid.add(hip); return hip; });
+      const arms = [-0.28, 0.28].map(ax => { const sh = new T.Group(); sh.position.set(ax, 0.86, 0); sh.add(c.box(0.1, 0.36, 0.12, col, 0, -0.18, 0)); kid.add(sh); return sh; });
       kid.add(c.box(0.42, 0.46, 0.26, col, 0, 0.66, 0)); kid.add(c.mesh(new T.SphereGeometry(0.17, 12, 10), ['#f1c9a5', '#b57a50', '#d9a47a', '#8a5634'][i % 4], 0, 1.04, 0));
       kid.position.set(x, 0, z); kid.rotation.y = i * 1.7; g.add(kid);
+      rigKids.push({ o: kid, legs, arms, hx: x, hz: z, tx: x, tz: z, wt: Math.random() * 2, kick: 0 });
     }
-    M(new T.SphereGeometry(0.16, 12, 10), '#ffffff', 0.2, 0.16, 0.1);
+    const yBall = M(new T.SphereGeometry(0.16, 12, 10), '#ffffff', 0.2, 0.16, 0.1);
+    youthRigs.push({ g, kids: rigKids, ball: yBall, from: 0, to: 1 % nK, p: 1, hold: 0.3 });
     if (L >= 3) ballBag(c, g, 2.3, 2.3);
     if (L >= 4) { B(2.0, 0.1, 0.45, '#b98a4a', -1.2, 0.45, 2.5); [-2.0, -0.4].forEach(x => B(0.1, 0.45, 0.4, '#1a1a1a', x, 0.22, 2.5)); }
   }

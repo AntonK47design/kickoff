@@ -83,7 +83,7 @@ export function makePlayer(base, pos, potBonus = 0) {
 }
 export function newLeague(div, season) {
   const names = shuffle(CLUBS).slice(0, 7);
-  const teams = [{ id: 0, name: 'Kickoff Academy', str: 0, me: true }].concat(names.map((n, i) => ({ id: i + 1, name: n, str: DIVS[div].base + rnd(-8, 8) + Math.min(10, (season - 1) * 1.2) })));
+  const teams = [{ id: 0, name: 'Kickoff Academy', str: 0, me: true }].concat(names.map((n, i) => ({ id: i + 1, name: n, str: DIVS[div].base + rnd(-8, 8) + Math.min(5, (season - 1) * 0.6) })));
   teams.forEach(t => Object.assign(t, { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }));
   let arr = shuffle([0, 1, 2, 3, 4, 5, 6, 7]); const schedule = [];
   for (let r = 0; r < 7; r++) {
@@ -125,7 +125,7 @@ export function pitchBonus(g) {
 }
 export function teamStrength(g) {
   const st = starters(g); if (!st.length) return 0;
-  const avg = st.reduce((s, p) => { const stam = Math.max(0.3, Math.min(1, 1 - ((p.STA || 30) - 30) / 200)); return s + ovr(p) * (1 - p.fat / 250 * stam) * (p.inj > 0 ? 0.6 : 1); }, 0) / st.length;
+  const avg = st.reduce((s, p) => { const stam = Math.max(0.3, Math.min(1, 1 - ((p.STA || 30) - 30) / 200)); return s + ovr(p) * (1 - p.fat / 500 * stam) * (p.inj > 0 ? 0.6 : 1); }, 0) / st.length;
   return avg + pitchBonus(g) * 1.0 + tacticsBonus(g) - (st.some(p => p.pos === 'GK') ? 0 : 6);
 }
 export function bestLevel(g, type) { let l = 0; for (const k in g.builds) if (g.builds[k].type === type) l = Math.max(l, g.builds[k].level); return l; }
@@ -212,4 +212,20 @@ export function endSeason(g) {
   g.league = newLeague(div, L.season + 1);
   genRecruits(g);
   return { pos, outcome, bonus, up: div < L.div, down: div > L.div, season: L.season };
+}
+
+export function quickSession(g, secs) {
+  const t = Math.max(0, secs) * 0.6; if (t < 1) return null;
+  const coach = 1 + 0.2 * g.staff.coach, stations = [];
+  for (const k in g.builds) { const b = g.builds[k], d = ST[b.type]; if (d && d.stat && (SLOTS[k].kind !== 'indoor' || g.indoorOpen)) stations.push(b); }
+  const st = starters(g); let gained = 0;
+  g.squad.forEach(p => {
+    if (!(p.inj > 0) && stations.length) {
+      const n = Math.floor(t / 7 + Math.random());
+      for (let i = 0; i < n; i++) { const b = stations[Math.floor(Math.random() * stations.length)], s = ST[b.type].stat, room = p.pot - (p[s] || 0), gn = Math.max(0, Math.min(room, trainGain(b.level) * coach * Math.max(0.15, Math.min(1, room / 15)))); p[s] = Math.round(((p[s] || 0) + gn) * 100) / 100; gained += gn; }
+    }
+    if (p.inj > 0) p.inj = Math.max(0, p.inj - t * (1 + 0.25 * g.staff.physio));
+    if (st.includes(p)) p.fat = Math.max(0, p.fat - t * 3 * (1 + 0.25 * g.staff.physio));
+  });
+  return gained;
 }
