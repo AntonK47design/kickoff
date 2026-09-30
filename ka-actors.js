@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.js';
-import { SLOTS, ST, SKIN, STATC, cap, trainGain, hash, rnd, IX, IZ } from './ka-data.js';
+import { SLOTS, ST, SKIN, STATC, cap, trainGain, hash, rnd, IX, IZ, starters } from './ka-data.js';
 import { sfx } from './ka-audio.js';
 
 const BENCH = [-3, -1.8, -0.6, 0.6, 1.8, 3];
@@ -159,14 +159,14 @@ export class Actors {
     Object.values(this.map).forEach(o => { if (o.slot != null) occ[o.slot] = (occ[o.slot] || 0) + 1; });
     const usable = k => SLOTS[k].kind !== 'indoor' || g.indoorOpen;
     const free = type => { for (const k in g.builds) { const b = g.builds[k]; if (b.type === type && usable(k) && (occ[k] || 0) < cap(b.level)) return +k; } return null; };
-    const inj = p.inj > 0;
-    if (inj || p.fat > 65) {
+    const inj = p.inj > 0, pre = g.timer < 12 && starters(g).includes(p) && p.fat > 10;
+    if (inj || p.fat > 65 || pre) {
       let sl = free('clinic'); if (sl == null && !inj) sl = free('pool');
       if (sl != null) return this.goTrain(a, sl);
       const used = new Set(Object.values(this.map).filter(o => o.bench != null).map(o => o.bench));
       const b = BENCH.findIndex((_, k) => !used.has(k));
       if (b >= 0) { a.bench = b; a.next = 'rest'; return this.routeTo(a, BENCH[b], 15.2); }
-      if (inj) { a.next = 'wait'; return this.routeTo(a, rnd(-5, 5), 13.5); }
+      if (inj || pre) { a.next = 'wait'; return this.routeTo(a, rnd(-8, 8), 13.5); }
     }
     let best = null, bestScore = -1;
     for (const k in g.builds) {
@@ -214,12 +214,13 @@ export class Actors {
       b.m.scale.setScalar(1 + u * 2.5); b.m.material.opacity = Math.max(0, 1 - u);
       if (u >= 1) { this.group.remove(b.m); b.m.geometry.dispose(); b.m.material.dispose(); this.bursts.splice(i, 1); }
     }
+    const preSet = new Set(g.timer < 12 ? starters(g) : []);
     for (const p of g.squad) {
       const a = this.map[p.id]; if (!a) continue;
       const f = a.fig, u = f.userData; a.phase += dt;
       let showBall = false, showBar = false; f.rotation.x = 0;
       if (p.inj > 0 && a.mode !== 'rest' && a.mode !== 'train') p.inj = Math.max(0, p.inj - dt * 0.3);
-      if (a.mode !== 'rest') p.fat = Math.max(0, p.fat - dt * 0.25 * (1 + 0.25 * g.staff.physio));
+      if (a.mode !== 'rest') p.fat = Math.max(0, p.fat - dt * 0.25 * (1 + 0.25 * g.staff.physio) * (preSet.has(p) && a.mode !== 'train' ? 20 : 1));
       if (a.mode === 'idle') { a.t -= dt; if (a.t <= 0) this.choose(p, a); }
       if (a.mode === 'walk') {
         const dx = a.tx - f.position.x, dz = a.tz - f.position.z, d = Math.hypot(dx, dz);

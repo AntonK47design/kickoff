@@ -172,7 +172,7 @@ export function playMatchday(g) {
   const tw = weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < myGoals; i++) { let r = Math.random() * tw, j = 0; while (r > weights[j]) { r -= weights[j]; j++; } scorers.push(st[Math.min(j, st.length - 1)].name.split(' ')[1] + " " + ri(3, 90) + "'"); }
   const rows = [];
-  const prize = Math.round((res === 'W' ? 220 : res === 'D' ? 90 : 35) * d.mult);
+  const prize = Math.round((res === 'W' ? 340 : res === 'D' ? 140 : 60) * d.mult);
   rows.push({ label: res === 'W' ? 'Win bonus' : res === 'D' ? 'Draw bonus' : 'Appearance fee', val: fmt(prize) });
   let total = prize;
   if (mine.home) {
